@@ -1,0 +1,47 @@
+> Caracteres ASCII para dibujar las interfaces <
+alt 200 ╚
+alt 188  ╝
+alt 187  ╗
+alt 201 ╔
+alt 205 ═
+alt 186 ║
+alt 185 ╣
+alt  ╠
+alt 178 ▓
+alt 2 ☻
+alt 219 █
+alt 47/
+alt 92 \
+
+alt 179 │
+alt 196 ─
+alt 218 ┌
+alt 191 ┐
+alt 217 ┘
+alt 192 └
+alt 195 ├
+alt 180 ┤
+alt 194 ┬
+alt 193 ┴
+alt 197 ┼
+
+int tipo1[6] = {201, 187, 200, 188, 205, 186}; // ╔ ╗ ╚ ╝ ═ ║
+    int tipo2[6] = {218, 191, 192, 217, 196, 179}; // ┌ ┐ └ ┘ ─ │
+
+> Numero de los colores
+0: Negro
+1: Azul
+2: Verde
+3: Aguamarina
+4: Rojo
+5: Púrpura
+6: Amarillo
+7: Blanco
+8: Gris
+9: Azul claro
+10: Verde claro
+11: Aguamarina claro
+12: Rojo claro
+13: Púrpura claro
+14: Amarillo claro
+15: Blanco brillante
