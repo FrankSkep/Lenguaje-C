@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 
 #define N 100
 
@@ -23,10 +24,13 @@ typedef struct _DatosCliente
 int menu();
 void leerNombArch(char msg[], char nom[]);
 void insertar(FILE *arch, char nom[]);
-void leerCad(const char msg[], char cadena[], int largo);
+void borrar(FILE *arch, char nom[]);
+void modificar(FILE *arch, char nom[]);
+
 void crearDat(FILE *arch, char nom[]);
 void listar(FILE *arch, char nom[]);
 
+void leerCad(const char msg[], char cadena[], int largo);
 int leerInt(const char msg[], int ri, int rf);
 float leerFloat(const char msg[], float ri, float rf);
 
@@ -68,6 +72,16 @@ int main()
             insertar(arch, nomArch);
             break;
 
+        case 5: // BORRAR
+            leerNombArch("> Nombre de archivo del que desea eliminar: ", nomArch);
+            borrar(arch, nomArch);
+            break;
+
+        case 6:
+            leerNombArch("> Nombre de archivo que va modificar: ", nomArch);
+            modificar(arch, nomArch);
+            break;
+
         case 7: // LISTAR
             leerNombArch("> Nombre de archivo a listar: ", nomArch);
             listar(arch, nomArch);
@@ -77,10 +91,38 @@ int main()
     } while (op != 0);
 }
 
+int menu()
+{
+    system("cls");
+    printf("\t|= SISTEMA DE CUENTAS BANCARIAS =|\n");
+    printf("1. Crear archivo .dat (100 Registros)\n");
+    printf("2. Respaldar archivo\n");
+    printf("3. Restaurar archivo\n");
+    printf("4. Insertar\n");
+    printf("5. Borrar\n");
+    printf("6. Modificar\n");
+    printf("7. Listar\n");
+    printf("8. Salir\n");
+    int op = leerInt("Escoge una opcion: ", 1, 8);
+    return op;
+}
+
 void leerNombArch(char msg[], char nom[])
 {
     leerCad(msg, nom, 30);
     strcat(nom, ".dat");
+}
+
+void crearDat(FILE *arch, char nom[])
+{
+    Tcliente regVacio = {0, "", "", 0};
+    arch = fopen(nom, "wb");
+    for (int i = 0; i < N; i++)
+    {
+        fwrite(&regVacio, sizeof(Tcliente), 1, arch);
+    }
+    printf("* Archivo creado con exito. *\n");
+    fclose(arch);
 }
 
 void insertar(FILE *arch, char nom[])
@@ -125,6 +167,90 @@ void insertar(FILE *arch, char nom[])
     fclose(arch);
 }
 
+void borrar(FILE *arch, char nom[])
+{
+    arch = fopen(nom, "rb+");
+
+    if (arch == NULL)
+    {
+        printf("* Error, el archivo no existe. *\n");
+        fclose(arch);
+        return;
+    }
+
+    int cuenta = leerInt("> Ingrese no. cuenta a eliminar: ", 1000, 9999);
+
+    Tcliente reg;
+    fseek(arch, 0, SEEK_SET);
+    while (fread(&reg, sizeof(Tcliente), 1, arch))
+    {
+        if (reg.numCuenta == cuenta)
+        {
+            reg.numCuenta = 0;
+            reg.nombre[0] = '\0';
+            reg.apellidos[0] = '\0';
+            reg.balance = 0;
+
+            fseek(arch, (long int)-sizeof(Tcliente), SEEK_CUR);
+            fwrite(&reg, sizeof(Tcliente), 1, arch);
+            printf("* Registro eliminado exitosamente. *\n");
+            fclose(arch);
+            return;
+        }
+    }
+    printf("* El numero de cuenta: %d no existe. *\n", cuenta);
+    fclose(arch);
+}
+
+void modificar(FILE *arch, char nom[])
+{
+    arch = fopen(nom, "rb+");
+    if (arch == NULL)
+    {
+        printf("* El archivo no existe. *\n");
+        return;
+    }
+
+    int cuenta = leerInt("> Ingrese no. cuenta a modificar: ", 1000, 9999);
+
+    Tcliente reg;
+    fseek(arch, 0, SEEK_SET);
+    while (fread(&reg, sizeof(Tcliente), 1, arch))
+    {
+        if (reg.numCuenta == cuenta)
+        {
+            float balance = leerFloat("> Ingrese balance (+) Cargo | (-) Abono: ", -1000000, 2000000);
+
+            if (balance < 0) // Si es Abono
+            {
+                if (fabs(balance) > reg.balance)
+                {
+                    printf("* Error cargo, balance insuficiente. *\n");
+                    fclose(arch);
+                    return;
+                }
+                else
+                {
+                    reg.balance += balance;
+                    printf("* Abono exitoso. (-) *\n");
+                }
+            }
+            else // Si es cargo
+            {
+                reg.balance += balance;
+                printf("* Cargo exitoso. *\n");
+            }
+            // Guardar cambios en el archivo
+            fseek(arch, (long int)-sizeof(Tcliente), SEEK_CUR);
+            fwrite(&reg, sizeof(Tcliente), 1, arch);
+            fclose(arch);
+            return;
+        }
+    }
+    printf("* Cuenta no existente. *\n");
+    fclose(arch);
+}
+
 void listar(FILE *arch, char nom[])
 {
     arch = fopen(nom, "rb");
@@ -159,35 +285,7 @@ void leerCad(const char msg[], char cadena[], int largo)
     cadena[strcspn(cadena, "\n")] = '\0';
 }
 
-int menu()
-{
-    system("cls");
-    printf("\t|= SISTEMA DE CUENTAS BANCARIAS =|\n");
-    printf("1. Crear archivo .dat (100 Registros)\n");
-    printf("2. Respaldar archivo\n");
-    printf("3. Restaurar archivo\n");
-    printf("4. Insertar\n");
-    printf("5. Borrar\n");
-    printf("6. Modificar\n");
-    printf("7. Listar\n");
-    printf("8. Salir\n");
-    int op = leerInt("Escoge una opcion: ", 1, 8);
-    return op;
-}
-
 // (+) Cargo, (-) Abono
-
-void crearDat(FILE *arch, char nom[])
-{
-    Tcliente regVacio = {0, "", "", 0};
-    arch = fopen(nom, "wb");
-    for (int i = 0; i < 100; i++)
-    {
-        fwrite(&regVacio, sizeof(Tcliente), 1, arch);
-    }
-    printf("* Archivo creado con exito. *\n");
-    fclose(arch);
-}
 
 int leerInt(const char msg[], int ri, int rf)
 {
