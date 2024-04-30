@@ -24,6 +24,7 @@ int menu();
 void leerNombArch(char msg[], char nom[]);
 void insertar(FILE *arch, char nom[]);
 void leerCad(const char msg[], char cadena[], int largo);
+void crearDat(FILE *arch, char nom[]);
 void listar(FILE *arch, char nom[]);
 
 int leerInt(const char msg[], int ri, int rf);
@@ -44,13 +45,14 @@ int main()
         {
         case 1:
             leerNombArch("> Ingrese nombre de archivo: ", nomArch);
-            arch = fopen(nomArch, "wb");
-            for (int i = 0; i < 100; i++)
-            {
-                fwrite(&regVacio, sizeof(Tcliente), 1, arch);
-            }
-            fclose(arch);
-            printf("* Archivo creado con exito. *\n");
+            crearDat(arch, nomArch);
+            // arch = fopen(nomArch, "wb");
+            // for (int i = 0; i < 100; i++)
+            // {
+            //     fwrite(&regVacio, sizeof(Tcliente), 1, arch);
+            // }
+            // fclose(arch);
+            // printf("* Archivo creado con exito. *\n");
             break;
 
         case 2:
@@ -61,12 +63,12 @@ int main()
             // restaurar archivo
             break;
 
-        case 4:
+        case 4: // INSERTAR DATOS
             leerNombArch("> Nombre de archivo a insertar datos: ", nomArch);
             insertar(arch, nomArch);
             break;
 
-        case 7:
+        case 7: // LISTAR
             leerNombArch("> Nombre de archivo a listar: ", nomArch);
             listar(arch, nomArch);
             break;
@@ -91,8 +93,8 @@ void insertar(FILE *arch, char nom[])
         return;
     }
 
-    system("CLS");
-    printf("\t| REGISTRANDO |\n");
+    system("cls");
+    printf("\t|= INSERTAR DATOS =|\n\n");
 
     Tcliente reg;
     int pos;
@@ -133,18 +135,19 @@ void listar(FILE *arch, char nom[])
         return;
     }
 
+    system("cls");
     Tcliente cliente;
-    printf("+-------------------------------------------------------------------------+\n");
-    printf("| Cuenta |        Nombre        |          APELLIDOS          |  BALANCE  |\n");
-    printf("|-------------------------------------------------------------------------|\n");
+    printf("+---------------------------------------------------------------------------+\n");
+    printf("| Cuenta |        Nombre        |          Apellidos          |   Balance   |\n");
+    printf("|---------------------------------------------------------------------------|\n");
     while (fread(&cliente, sizeof(Tcliente), 1, arch))
     {
         if (cliente.numCuenta != 0)
         {
-            printf("|  %-4d  | %-20s | %-27s |   %-7.2f |\n", cliente.numCuenta, cliente.nombre, cliente.apellidos, cliente.balance);
+            printf("|  %-4d  | %-20s | %-27s | %-8.2f    |\n", cliente.numCuenta, cliente.nombre, cliente.apellidos, cliente.balance);
         }
     }
-    printf("+-------------------------------------------------------------------------+\n");
+    printf("+---------------------------------------------------------------------------+\n");
     fclose(arch);
 }
 
@@ -174,8 +177,16 @@ int menu()
 
 // (+) Cargo, (-) Abono
 
-void crearDat()
+void crearDat(FILE *arch, char nom[])
 {
+    Tcliente regVacio = {0, "", "", 0};
+    arch = fopen(nom, "wb");
+    for (int i = 0; i < 100; i++)
+    {
+        fwrite(&regVacio, sizeof(Tcliente), 1, arch);
+    }
+    printf("* Archivo creado con exito. *\n");
+    fclose(arch);
 }
 
 int leerInt(const char msg[], int ri, int rf)
