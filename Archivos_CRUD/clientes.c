@@ -88,7 +88,7 @@ int main()
             break;
         }
         system("PAUSE");
-    } while (op != 0);
+    } while (op != 8);
 }
 
 int menu()
@@ -96,7 +96,7 @@ int menu()
     system("cls");
     printf("\t|= SISTEMA DE CUENTAS BANCARIAS =|\n");
     printf("1. Crear archivo .dat (100 Registros)\n");
-    printf("2. Respaldar archivo\n");
+    printf("2. Respaldar .dat en .txt\n");
     printf("3. Restaurar archivo\n");
     printf("4. Insertar\n");
     printf("5. Borrar\n");
@@ -115,13 +115,28 @@ void leerNombArch(char msg[], char nom[])
 
 void crearDat(FILE *arch, char nom[])
 {
+    int op;
+    arch = fopen(nom, "rb");
+    if (arch != NULL)
+    {
+        printf("* El archivo '%s' ya existe, desea sobreescribirlo?\n", nom);
+        op = leerInt("[1. Si | 2. No]: ", 1, 2);
+    }
+    if (op != 1)
+    {
+        fclose(arch);
+        return;
+    }
+
+    // Inicializar archivo con datos vacios
     Tcliente regVacio = {0, "", "", 0};
     arch = fopen(nom, "wb");
     for (int i = 0; i < N; i++)
     {
         fwrite(&regVacio, sizeof(Tcliente), 1, arch);
     }
-    printf("* Archivo creado con exito. *\n");
+    system("cls");
+    printf("\n* Archivo creado e inicializado con exito. *\n\n");
     fclose(arch);
 }
 
@@ -143,9 +158,9 @@ void insertar(FILE *arch, char nom[])
     // --- Verificar que la posicion no este ocupada ---
     do
     {
-        pos = leerInt("> Posicion en que desea guardar su registro [0, 99]: ", 0, 99);
-        fseek(arch, pos * sizeof(Tcliente), SEEK_SET); // Mover el cursor a la posicion dada
-        fread(&reg, sizeof(Tcliente), 1, arch);        // Leer el registro en esa posición
+        pos = leerInt("> Posicion en que desea guardar su registro [1, 100]: ", 1, 100);
+        fseek(arch, (pos - 1) * sizeof(Tcliente), SEEK_SET); // Mover el cursor a la posicion dada
+        fread(&reg, sizeof(Tcliente), 1, arch);              // Leer el registro en esa posición
 
         if (reg.numCuenta != 0)
         {
@@ -160,8 +175,8 @@ void insertar(FILE *arch, char nom[])
     reg.balance = leerFloat("> Ingrese su balance: ", 0, 2000000);
 
     // --- Escribir los datos en la posicion dada ---
-    fseek(arch, pos * sizeof(Tcliente), SEEK_SET); // Mover cursor ala posicion
-    fwrite(&reg, sizeof(Tcliente), 1, arch);       // Escribir el registro en la posicion
+    fseek(arch, (pos - 1) * sizeof(Tcliente), SEEK_SET); // Mover cursor ala posicion
+    fwrite(&reg, sizeof(Tcliente), 1, arch);             // Escribir el registro en la posicion
 
     printf("\n* Registro agregado exitosamente. *\n");
     fclose(arch);
@@ -263,17 +278,19 @@ void listar(FILE *arch, char nom[])
 
     system("cls");
     Tcliente cliente;
-    printf("+---------------------------------------------------------------------------+\n");
-    printf("| Cuenta |        Nombre        |          Apellidos          |   Balance   |\n");
-    printf("|---------------------------------------------------------------------------|\n");
+    int i = 0;
+    printf("+-----------------------------------------------------------------------------------------+\n");
+    printf("| No. Reg | No. Cuenta |        Nombre        |          Apellidos          |   Balance   |\n");
+    printf("|-----------------------------------------------------------------------------------------|\n");
     while (fread(&cliente, sizeof(Tcliente), 1, arch))
     {
         if (cliente.numCuenta != 0)
         {
-            printf("|  %-4d  | %-20s | %-27s | %-8.2f    |\n", cliente.numCuenta, cliente.nombre, cliente.apellidos, cliente.balance);
+            printf("| %-7d |  %-8d  | %-20s | %-27s | %-8.2f    |\n", i + 1, cliente.numCuenta, cliente.nombre, cliente.apellidos, cliente.balance);
         }
+        i++;
     }
-    printf("+---------------------------------------------------------------------------+\n");
+    printf("+-----------------------------------------------------------------------------------------+\n");
     fclose(arch);
 }
 
