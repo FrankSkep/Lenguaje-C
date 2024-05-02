@@ -22,6 +22,7 @@ typedef struct _DatosCliente
 int menu();
 void insertar(FILE *arch, char nom[]);
 void borrar(FILE *arch, char nom[]);
+void mostrarDatos(Tcliente reg);
 void modificar(FILE *arch, char nom[]);
 void crearDat(FILE *arch, char nom[]);
 void respaldar(FILE *arch, char nom[]);
@@ -29,7 +30,6 @@ void listar(FILE *arch, char nom[]);
 
 // Funciones auxiliares
 void leerNombArch(char msg[], char nom[], const char ext[]);
-bool NoExisteArchivo(FILE *archivo);
 void leerCad(const char msg[], char cadena[], int largo);
 int leerInt(const char msg[], int ri, int rf);
 float leerFloat(const char msg[], float ri, float rf);
@@ -221,24 +221,45 @@ void borrar(FILE *arch, char nom[])
 
     Tcliente reg;
     fseek(arch, 0, SEEK_SET);
+    int op;
     while (fread(&reg, sizeof(Tcliente), 1, arch))
     {
         if (reg.numCuenta == cuenta)
         {
-            reg.numCuenta = 0;
-            reg.nombre[0] = '\0';
-            reg.apellidos[0] = '\0';
-            reg.balance = 0;
+            mostrarDatos(reg);
+            leerInt("* Desea eliminar? [1. Si | 2. No]: ", 1, 2);
 
-            fseek(arch, (long int)-sizeof(Tcliente), SEEK_CUR);
-            fwrite(&reg, sizeof(Tcliente), 1, arch);
-            printf("* Registro eliminado exitosamente. *\n");
-            fclose(arch);
-            return;
+            if (op == 1)
+            {
+                reg.numCuenta = 0;
+                reg.nombre[0] = '\0';
+                reg.apellidos[0] = '\0';
+                reg.balance = 0;
+
+                fseek(arch, (long int)-sizeof(Tcliente), SEEK_CUR);
+                fwrite(&reg, sizeof(Tcliente), 1, arch);
+                printf("* Registro eliminado exitosamente. *\n");
+                fclose(arch);
+                return;
+            }
+            else
+            {
+                printf("* Eliminacion cancelada. *\n");
+                return;
+            }
         }
     }
     printf("* La cuenta '%d' no existe. *\n", cuenta);
     fclose(arch);
+}
+
+void mostrarDatos(Tcliente reg)
+{
+    printf("\n-| DATOS CLIENTE |-\n");
+    printf("* Cuenta: %d\n", reg.numCuenta);
+    printf("* Nombre: %s\n", reg.nombre);
+    printf("* Apellios: %s\n", reg.apellidos);
+    printf("* Balance: %.2f\n\n", reg.balance);
 }
 
 void modificar(FILE *arch, char nom[])
@@ -254,37 +275,49 @@ void modificar(FILE *arch, char nom[])
     int cuenta = leerInt("> Ingrese no. cuenta a modificar: ", 1000, 9999);
 
     Tcliente reg;
+    int op;
     fseek(arch, 0, SEEK_SET);
     while (fread(&reg, sizeof(Tcliente), 1, arch))
     {
         if (reg.numCuenta == cuenta)
         {
-            float balance = leerFloat("> Ingrese monto (+) Cargo | (-) Abono: ", -1000000, 2000000);
+            mostrarDatos(reg);
+            op = leerInt("* Desea modificar su balance? [1. Si | 2. No]: ", 1, 2);
 
-            if (balance < 0) // Si es Abono
+            if (op == 1)
             {
-                if (fabs(balance) > reg.balance)
+                float balance = leerFloat("> Ingrese monto (+) Cargo | (-) Abono: ", -1000000, 2000000);
+
+                if (balance < 0) // Si es Abono
                 {
-                    printf("* Error abono, balance insuficiente. *\n");
-                    fclose(arch);
-                    return;
+                    if (fabs(balance) > reg.balance)
+                    {
+                        printf("* Error abono, balance insuficiente. *\n");
+                        fclose(arch);
+                        return;
+                    }
+                    else
+                    {
+                        reg.balance += balance;
+                        printf("* Abono exitoso. (-) *\n");
+                    }
                 }
-                else
+                else // Si es cargo
                 {
                     reg.balance += balance;
-                    printf("* Abono exitoso. (-) *\n");
+                    printf("* Cargo exitoso. *\n");
                 }
+                // Guardar cambios en el archivo
+                fseek(arch, (long int)-sizeof(Tcliente), SEEK_CUR);
+                fwrite(&reg, sizeof(Tcliente), 1, arch);
+                fclose(arch);
+                return;
             }
-            else // Si es cargo
+            else
             {
-                reg.balance += balance;
-                printf("* Cargo exitoso. *\n");
+                printf("* Modificacion cancelada. *\n");
+                return;
             }
-            // Guardar cambios en el archivo
-            fseek(arch, (long int)-sizeof(Tcliente), SEEK_CUR);
-            fwrite(&reg, sizeof(Tcliente), 1, arch);
-            fclose(arch);
-            return;
         }
     }
     printf("* La cuenta '%d' no existe. *\n", cuenta);
@@ -325,12 +358,6 @@ void leerNombArch(char msg[], char nom[], const char ext[])
 {
     leerCad(msg, nom, 30);
     strcat(nom, ext);
-}
-
-// Verifica se pudo abrir un archivo
-bool NoExisteArchivo(FILE *archivo)
-{
-    return (archivo == NULL);
 }
 
 // Lee cadena con fgets
