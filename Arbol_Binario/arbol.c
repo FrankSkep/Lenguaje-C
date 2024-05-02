@@ -16,7 +16,7 @@ void postorden(Nodo *nodo);
 
 int main()
 {
-    int datos[8] = {9, 2, 1, 16, 6, 11, 8, 4};
+    int datos[8] = {54, 32, 60, 87, 34, 15, 104, 90};
     int n = 8;
 
     Nodo *raiz = crearNodo(datos[0]);
