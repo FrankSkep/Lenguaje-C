@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#include <stdbool.h>
 
 #define N 100
 
@@ -28,6 +29,7 @@ void listar(FILE *arch, char nom[]);
 
 // Funciones auxiliares
 void leerNombArch(char msg[], char nom[], const char ext[]);
+bool NoExisteArchivo(FILE *archivo);
 void leerCad(const char msg[], char cadena[], int largo);
 int leerInt(const char msg[], int ri, int rf);
 float leerFloat(const char msg[], float ri, float rf);
@@ -54,46 +56,45 @@ int main()
             respaldar(arch, nomArch);
             break;
 
-        case 3:
-            // restaurar archivo
-            break;
-
-        case 4: // INSERTAR DATOS
+        case 3: // INSERTAR DATOS
             leerNombArch("> Nombre de archivo a insertar datos: ", nomArch, ".dat");
             insertar(arch, nomArch);
             break;
 
-        case 5: // BORRAR
+        case 4: // BORRAR
             leerNombArch("> Nombre de archivo del que desea eliminar: ", nomArch, ".dat");
             borrar(arch, nomArch);
             break;
 
-        case 6: // MODIFICAR
+        case 5: // MODIFICAR
             leerNombArch("> Nombre de archivo que desea modificar: ", nomArch, ".dat");
             modificar(arch, nomArch);
             break;
 
-        case 7: // LISTAR
+        case 6: // LISTAR
             leerNombArch("> Nombre de archivo a listar: ", nomArch, ".dat");
             listar(arch, nomArch);
             break;
+
+        case 7:
+            printf("* HAS SALIDO. *\n");
+            break;
         }
         system("PAUSE");
-    } while (op != 8);
+    } while (op != 7);
 }
 
 int menu()
 {
     system("cls");
-    printf("\t|= CLIENTES BANCO =|\n");
+    printf("\t-|= CLIENTES BANCO =|-\n\n");
     printf("1. Crear archivo .dat (100 Registros)\n");
-    printf("2. Respaldar .dat en .txt\n");
-    printf("3. Restaurar archivo\n");
-    printf("4. Insertar\n");
-    printf("5. Borrar\n");
-    printf("6. Modificar\n");
-    printf("7. Listar\n");
-    printf("8. Salir\n");
+    printf("2. Respaldar archivo a .txt\n");
+    printf("3. Insertar registro\n");
+    printf("4. Borrar registro\n");
+    printf("5. Modificar balance\n");
+    printf("6. Listar registros\n");
+    printf("7. Salir\n");
     int op = leerInt("Escoge una opcion: ", 1, 8);
     return op;
 }
@@ -121,7 +122,7 @@ void crearDat(FILE *arch, char nom[])
         fwrite(&regVacio, sizeof(Tcliente), 1, arch);
     }
     system("cls");
-    printf("\n* Archivo creado e inicializado con exito. *\n\n");
+    printf("\n* Archivo '%s' creado e inicializado con exito. *\n\n", nom);
     fclose(arch);
 }
 
@@ -131,10 +132,11 @@ void respaldar(FILE *arch, char nom[])
 
     if (arch == NULL)
     {
-        printf("* El archivo %s no existe. *\n", nom);
+        printf("* El archivo '%s' no existe. *\n", nom);
         return;
     }
 
+    printf("-| Respaldando archivo '%s' |-\n\n", nom);
     // --- Respaldar el archivo ---
     FILE *archResp;
     char nomRespal[30];
@@ -150,12 +152,12 @@ void respaldar(FILE *arch, char nom[])
     {
         if (reg.numCuenta != 0)
         {
-            fprintf(archResp, "| %-7d |  %-8d  | %-20s | %-27s | %-8.2f     |\n", i + 1, reg.numCuenta, reg.nombre, reg.apellidos, reg.balance);
+            fprintf(archResp, "| %-7d |  %-8d  | %-20s | %-27s | %-13.2f |\n", i + 1, reg.numCuenta, reg.nombre, reg.apellidos, reg.balance);
         }
         i++;
     }
     fprintf(archResp, "+-------------------------------------------------------------------------------------------+\n");
-    printf("* Archivo respaldado correctamente. *\n");
+    printf("* Archivo '%s' respaldado correctamente en '%s'. *\n", nom, nomRespal);
 
     fclose(arch);
     fclose(archResp);
@@ -167,12 +169,12 @@ void insertar(FILE *arch, char nom[])
 
     if (arch == NULL)
     {
-        printf("* El archivo %s no existe. *\n", nom);
+        printf("* El archivo '%s' no existe. *\n", nom);
         return;
     }
 
     system("cls");
-    printf("\t|= INSERTAR DATOS =|\n\n");
+    printf("-| Insertando datos en archivo '%s' |-\n\n", nom);
 
     Tcliente reg;
     int pos;
@@ -209,11 +211,12 @@ void borrar(FILE *arch, char nom[])
 
     if (arch == NULL)
     {
-        printf("* Error, el archivo no existe. *\n");
+        printf("* El archivo '%s' no existe. *\n", nom);
         fclose(arch);
         return;
     }
 
+    printf("-| Borrando en archivo '%s' |-\n\n", nom);
     int cuenta = leerInt("> Ingrese no. cuenta a eliminar [1000, 9999]: ", 1000, 9999);
 
     Tcliente reg;
@@ -234,7 +237,7 @@ void borrar(FILE *arch, char nom[])
             return;
         }
     }
-    printf("* El numero de cuenta: %d no existe. *\n", cuenta);
+    printf("* La cuenta '%d' no existe. *\n", cuenta);
     fclose(arch);
 }
 
@@ -243,10 +246,11 @@ void modificar(FILE *arch, char nom[])
     arch = fopen(nom, "rb+");
     if (arch == NULL)
     {
-        printf("* El archivo no existe. *\n");
+        printf("* El archivo '%s' no existe. *\n", nom);
         return;
     }
 
+    printf("-| Modificando archivo '%s' |-\n\n", nom);
     int cuenta = leerInt("> Ingrese no. cuenta a modificar: ", 1000, 9999);
 
     Tcliente reg;
@@ -283,7 +287,7 @@ void modificar(FILE *arch, char nom[])
             return;
         }
     }
-    printf("* Cuenta no existente. *\n");
+    printf("* La cuenta '%d' no existe. *\n", cuenta);
     fclose(arch);
 }
 
@@ -293,11 +297,12 @@ void listar(FILE *arch, char nom[])
 
     if (arch == NULL)
     {
-        printf("* El archivo no existe. *\n");
+        printf("* El archivo '%s' no existe. *\n", nom);
         return;
     }
 
     system("cls");
+    printf("-| Listando archivo '%s' |-\n", nom);
     Tcliente cliente;
     int i = 0;
     printf("+-------------------------------------------------------------------------------------------+\n");
@@ -307,7 +312,7 @@ void listar(FILE *arch, char nom[])
     {
         if (cliente.numCuenta != 0)
         {
-            printf("| %-7d |  %-8d  | %-20s | %-27s | %-8.2f     |\n", i + 1, cliente.numCuenta, cliente.nombre, cliente.apellidos, cliente.balance);
+            printf("| %-7d |  %-8d  | %-20s | %-27s | %-13.2f |\n", i + 1, cliente.numCuenta, cliente.nombre, cliente.apellidos, cliente.balance);
         }
         i++;
     }
@@ -320,6 +325,12 @@ void leerNombArch(char msg[], char nom[], const char ext[])
 {
     leerCad(msg, nom, 30);
     strcat(nom, ext);
+}
+
+// Verifica se pudo abrir un archivo
+bool NoExisteArchivo(FILE *archivo)
+{
+    return (archivo == NULL);
 }
 
 // Lee cadena con fgets
