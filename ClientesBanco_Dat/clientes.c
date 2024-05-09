@@ -6,11 +6,6 @@
 
 #define N 100
 
-// imprimir los que numero de cuenta sea diferente de cero
-// posicion: 50 ejemplo (50 - 1) * tam struct
-// solo modificar balance
-// si es diferente de cero, deja modificar
-
 typedef struct _DatosCliente
 {
     int numCuenta;
