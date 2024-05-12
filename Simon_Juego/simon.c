@@ -13,10 +13,8 @@ void imprimirPuntos(int puntos);
 
 int main()
 {
-    int secuencia[MAX_LEN];
-    int longitudSecuencia;
-    int entradaUsuario, juego, correcto, puntos;
-    int i;
+    int secuencia[MAX_LEN], longitudSecuencia;
+    int entradaUsuario, correcto, puntos, juego, i;
     srand(time(NULL));
 
     do /********** BUCLE DEL JUEGO  **********/
@@ -50,12 +48,13 @@ int main()
                 }
             }
 
-            if (correcto) // Si completa la secuencia, imprime mensaje y espera 1.2 segundos
+            // Si completa la secuencia, imprime mensaje y espera 0.55 segundos
+            if (correcto)
             {
                 cadenaXY_COLOR(27, 23, 10, 0, " Correcto, sigue jugando ");
-                Sleep(550);               // Esperar 550 segundos
+                Sleep(550);
                 clsRegion(1, 23, 79, 23); // Limpiar zona de mensajes
-                puntos += 10;             // Suma 10 puntos por cada vez que complete la secuencia
+                puntos += 10;             // Suma 10 puntos por cada secuencia correcta
             }
             imprimirPuntos(puntos);
 
@@ -64,7 +63,7 @@ int main()
         Sleep(1500);
         juego = jugarDeNuevo();
 
-    } while (juego == 1);
+    } while (juego == 1); // Partida actual
 }
 
 /******** DESARROLLO DE FUNCIONES ********/
@@ -74,7 +73,7 @@ void dibujarInterfaz()
     int tipo2[6] = {218, 191, 192, 217, 196, 179}; // ┌ ┐ └ ┘ ─ │
 
     // Recuadro contenedor principal
-    color(6, 0);
+    color(3, 0);
     recuadro(0, 0, 80, 21, tipo1);
     color(15, 0);
 
@@ -91,7 +90,7 @@ void dibujarInterfaz()
     charXY(40, 9, 197); // Cruz central
 
     // Recuadro para mensajes
-    color(6, 0);
+    color(3, 0);
     recuadro(0, 22, 80, 24, tipo1);
 
     // Titulo juego

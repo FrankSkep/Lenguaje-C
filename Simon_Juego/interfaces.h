@@ -6,7 +6,6 @@
 #include <windows.h>
 #include <stdlib.h>
 #include <time.h>
-#include <winbase.h>
 #include <conio.h>
 
 /******* PROTOTIPOS DE FUNCIONES *******/
@@ -26,7 +25,6 @@ void recuadro(int x1, int y1, int x2, int y2, int tipo[]);
 void color(int clrT, int clrF);
 void cls();
 void pausa();
-void delay(unsigned duration);
 void clsRegion(int x1, int y1, int x2, int y2);
 
 /******* DESARROLLO DE FUNCIONES *******/
