@@ -176,7 +176,8 @@ void drawColors()
         }
     }
 
-    DrawText(TextFormat("Aciertos: %d", secuenciaACT - 1), SCR_WIDTH / 2 - MeasureText(TextFormat("Aciertos: %d", secuenciaACT - 1), 50) / 2, 750, 50, RAYWHITE);
+    DrawText(TextFormat("Aciertos: %d", secuenciaACT - 1), SCR_WIDTH / 2 - MeasureText(TextFormat("Aciertos: %d", secuenciaACT - 1), 50) / 2, 750, 50, DARKGRAY);
+    DrawText(TextFormat("Aciertos: %d", secuenciaACT - 1), (SCR_WIDTH / 2 - MeasureText(TextFormat("Aciertos: %d", secuenciaACT - 1), 50) / 2) + 2, 752, 50, RAYWHITE);
     DrawTextCenter("¡Replica la secuencia en el orden correcto!", 0, 100, 50, DARKGRAY);
     DrawTextCenter("¡Replica la secuencia en el orden correcto!", 3, 103, 50, YELLOW);
 }
