@@ -149,7 +149,7 @@ void gameoverInterface()
 
 void drawColors()
 {
-    ClearBackground(RAYWHITE);
+    ClearBackground(WHITE);
     DrawTexture(partida, 0, 0, WHITE);
 
     for (int i = 0; i < N_COLORS; i++)
@@ -193,10 +193,10 @@ void showSequence()
             Rectangle rect = buttons[secuencia[indiceAMostrar]].rect;
 
             // Ampliar el cuadrado
-            rect.x -= 5;
-            rect.y -= 5;
-            rect.width += 10;
-            rect.height += 10;
+            rect.x -= 10;
+            rect.y -= 10;
+            rect.width += 20;
+            rect.height += 20;
 
             DrawRectangleRounded(rect, 0.2, 0, buttons[secuencia[indiceAMostrar]].highlightColor);
 
@@ -274,7 +274,7 @@ void updateGame(int key)
         {
             gameState = IN_GAME;
         }
-        else if(key == KEY_F11)
+        else if (key == KEY_F11)
         {
             ToggleFullscreen();
         }
