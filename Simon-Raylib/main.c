@@ -140,8 +140,8 @@ void gameoverInterface()
     DrawTextCenter("Has perdido!", 0, 250, 70, DARKGRAY);
     DrawTextCenter("Has perdido!", 4, 254, 70, RED);
 
-    DrawTextCenter("(A) Jugar de nuevo", 0, 700, 40, DARKGRAY);
-    DrawTextCenter("(A) Jugar de nuevo", 4, 704, 40, GREEN);
+    DrawTextCenter("(Enter) Jugar de nuevo", 0, 700, 40, DARKGRAY);
+    DrawTextCenter("(Enter) Jugar de nuevo", 4, 704, 40, GREEN);
 
     DrawTextCenter("(Q) Volver al menu", 0, 760, 40, DARKGRAY);
     DrawTextCenter("(Q) Volver al menu", 4, 764, 40, RED);
