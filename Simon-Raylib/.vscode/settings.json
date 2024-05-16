@@ -11,6 +11,8 @@
 	"files.associations": {
 		"*.m": "c",
 		"stdlib.h": "c",
-		"raylib.h": "c"
+		"raylib.h": "c",
+		"resources.h": "c",
+		"time.h": "c"
 	}
 }

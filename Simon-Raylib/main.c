@@ -1,5 +1,5 @@
 #include "raylib.h"
-#include "game.h"
+#include "resources.h"
 #include <stdlib.h>
 #include <time.h>
 
@@ -273,6 +273,10 @@ void updateGame(int key)
         if (key == KEY_ENTER)
         {
             gameState = IN_GAME;
+        }
+        else if(key == KEY_F11)
+        {
+            ToggleFullscreen();
         }
         break;
 
