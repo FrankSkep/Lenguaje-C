@@ -33,13 +33,6 @@ int main()
         // Abre o Crea el archivo destino, solo si existe el de origen
         archDest = fopen(nombreDest, "w");
 
-        if (archDest == NULL)
-        {
-            printf("\n* El archivo destino no se pudo abrir. *\n\n");
-            system("pause");
-            continue;
-        }
-
         // Realizar la copia
         copiarArchivo(archOrigen, archDest);
 
