@@ -9,7 +9,7 @@
 #define MAX_SECUENCIA 100
 #define N_COLORS 4
 
-// Estados del juego
+// Enum con estados del juego
 typedef enum _gameState
 {
     MAIN_MENU,
@@ -19,7 +19,7 @@ typedef enum _gameState
     SHOW_SEQUENCE,
 } TgameState;
 
-// Estructura para almacenar el cuadro y su color
+// Struct para almacenar propiedades del boton
 typedef struct
 {
     Rectangle rect;
@@ -27,53 +27,46 @@ typedef struct
     Color highlightColor;
 } Button;
 
-TgameState gameState = MAIN_MENU; // Estado del juego
-Button buttons[N_COLORS];         // Botones de color
-int secuencia[MAX_SECUENCIA];     // Arreglo que almacena la secuencia
-int secuenciaACT = 0;             // Tamaño de secuencia actual
-int intentoJugador = 0;           // Numero de intento del jugador
-int indiceAMostrar = 0;           // Indice a mostrar en showSequence
-float tiempoInicio = 0;           // Tiempo de inicio para pausa
-
-Color highlightColor = {200, 200, 200, 255}; // Color para resaltar los botones
-
-void menuInterface();
-void gameoverInterface();
-void drawColors();
+// Prototipos funciones
+void drawMainMenu();
+void initButtons();
+void drawGame();
 void showSequence();
-void secondspause(float seconds);
-void DrawTextCenter(const char *text, int posX, int posY, int fontSize, Color color);
-void updateGame(int key);
 void ingresarSecuencia();
 int opcionUsuario();
+void drawGameOver();
+void updateGameState(int key);
+void DrawTextCenterX(const char *text, int posX, int posY, int fontSize, Color color);
+
+TgameState gameState = MAIN_MENU;            // Estado del juego
+Button buttons[N_COLORS];                    // Botones de color
+int secuencia[MAX_SECUENCIA];                // Arreglo que almacena la secuencia
+int secuenciasCorrectas = 0;                 // Tamaño de secuencia actual
+int intentoActual = 0;                       // Numero de intento del jugador
+int indiceAMostrar = 0;                      // Indice a mostrar en showSequence
+float tiempoInicio = 0;                      // Tiempo de inicio para pausa
+Color highlightColor = {200, 200, 200, 255}; // Color para resaltar los botones
 
 int main()
 {
     InitWindow(SCR_WIDTH, SCR_HEIGHT, "Simon Game");
     SetTargetFPS(60);
 
-    srand(time(NULL));
+    srand(time(NULL)); // Semilla numeros aleatorios
 
+    /* Carga de texturas y sonidos */
     loadTextures();
     InitAudioDevice();
     loadSounds();
 
-    int key = -1; // Opcion del usuario
+    int key; // Almacena tecla pulsada
 
-    float buttonWidth = 200;
-    float buttonHeight = 160;
-
-    float centerX = SCR_WIDTH / 2;
-    float centerY = SCR_HEIGHT / 2;
-
-    buttons[0] = (Button){(Rectangle){centerX - buttonWidth - 10, centerY - buttonHeight - 10, buttonWidth, buttonHeight}, RED, MAROON};
-    buttons[1] = (Button){(Rectangle){centerX + 10, centerY - buttonHeight - 10, buttonWidth, buttonHeight}, GREEN, DARKGREEN};
-    buttons[2] = (Button){(Rectangle){centerX - buttonWidth - 10, centerY + 10, buttonWidth, buttonHeight}, BLUE, DARKBLUE};
-    buttons[3] = (Button){(Rectangle){centerX + 10, centerY + 10, buttonWidth, buttonHeight}, YELLOW, GOLD};
+    // Inicializa propiedades de los botones
+    initButtons();
 
     while (!WindowShouldClose())
     {
-        updateGame(key);
+        updateGameState(key);
         key = -1;
 
         BeginDrawing();
@@ -83,16 +76,15 @@ int main()
         case MAIN_MENU:
             PlayMusicStream(gameMusic);
             UpdateMusicStream(gameMusic);
-            menuInterface();
+            drawMainMenu();
             key = GetKeyPressed();
             break;
 
         case IN_GAME:
-            StopMusicStream(gameMusic);
+            indiceAMostrar = 0;                                   // Reinicia indice
+            tiempoInicio = GetTime();                             // Reinicia tiempo
+            secuencia[secuenciasCorrectas++] = rand() % N_COLORS; // Genera nuevo color secuencia
             gameState = SHOW_SEQUENCE;
-            indiceAMostrar = 0;                            // Reinicia indice
-            tiempoInicio = GetTime();                      // Reinicia tiempo
-            secuencia[secuenciaACT++] = rand() % N_COLORS; // Genera nuevo.
             break;
 
         case SHOW_SEQUENCE:
@@ -100,13 +92,13 @@ int main()
             break;
 
         case GAME_OVER:
-            gameoverInterface();
-            secuenciaACT = 0;
+            drawGameOver();
+            secuenciasCorrectas = 0; // Reinicia aciertos del jugador
             key = GetKeyPressed();
             break;
 
         case INPUT_SEC:
-            drawColors();
+            drawGame();
             ingresarSecuencia();
             break;
         }
@@ -120,34 +112,37 @@ int main()
     return 0;
 }
 
-void menuInterface()
+// Dibuja menu principal
+void drawMainMenu()
 {
     DrawTexture(menu, 0, 0, WHITE);
-    DrawTextCenter("SIMON GAME", 0, 90, 130, GOLD);
-    DrawTextCenter("SIMON GAME", 4, 94, 130, YELLOW);
+    DrawTextCenterX("SIMON GAME", 0, 90, 130, GOLD);
+    DrawTextCenterX("SIMON GAME", 4, 94, 130, YELLOW);
 
-    DrawTextCenter("(Enter) Jugar", 0, 600, 55, LIME);
-    DrawTextCenter("(Enter) Jugar", 2, 602, 55, GREEN);
+    DrawTextCenterX("(Enter) Jugar", 0, 600, 55, LIME);
+    DrawTextCenterX("(Enter) Jugar", 2, 602, 55, GREEN);
 
-    DrawTextCenter("(Esc) Salir", 0, 700, 55, MAROON);
-    DrawTextCenter("(Esc) Salir", 2, 702, 55, RED);
+    DrawTextCenterX("(Esc) Salir", 0, 700, 55, MAROON);
+    DrawTextCenterX("(Esc) Salir", 2, 702, 55, RED);
 }
 
-void gameoverInterface()
+// Inicializa los botones y define sus propiedades
+void initButtons()
 {
-    ClearBackground(RAYWHITE);
-    DrawTexture(gameover, 0, 0, WHITE);
-    DrawTextCenter("Has perdido!", 0, 250, 70, DARKGRAY);
-    DrawTextCenter("Has perdido!", 4, 254, 70, RED);
+    float buttonWidth = 200;
+    float buttonHeight = 160;
 
-    DrawTextCenter("(Enter) Jugar de nuevo", 0, 700, 40, DARKGRAY);
-    DrawTextCenter("(Enter) Jugar de nuevo", 4, 704, 40, GREEN);
+    float centerX = SCR_WIDTH / 2;
+    float centerY = SCR_HEIGHT / 2;
 
-    DrawTextCenter("(Q) Volver al menu", 0, 760, 40, DARKGRAY);
-    DrawTextCenter("(Q) Volver al menu", 4, 764, 40, RED);
+    buttons[0] = (Button){(Rectangle){centerX - buttonWidth - 10, centerY - buttonHeight - 10, buttonWidth, buttonHeight}, RED, MAROON};
+    buttons[1] = (Button){(Rectangle){centerX + 10, centerY - buttonHeight - 10, buttonWidth, buttonHeight}, GREEN, DARKGREEN};
+    buttons[2] = (Button){(Rectangle){centerX - buttonWidth - 10, centerY + 10, buttonWidth, buttonHeight}, BLUE, DARKBLUE};
+    buttons[3] = (Button){(Rectangle){centerX + 10, centerY + 10, buttonWidth, buttonHeight}, YELLOW, GOLD};
 }
 
-void drawColors()
+// Dibuja interfaz principal del juego
+void drawGame()
 {
     ClearBackground(WHITE);
     DrawTexture(partida, 0, 0, WHITE);
@@ -156,13 +151,9 @@ void drawColors()
     {
         Rectangle rect = buttons[i].rect;
 
-        // Si el cursor esta sobre el cuadro, lo amplia
+        // Amplia boton al pasar cursor encima
         if (CheckCollisionPointRec(GetMousePosition(), rect))
         {
-            // rect.x -= 5;
-            // rect.y -= 5;
-            // rect.width += 10;
-            // rect.height += 10;
             DrawRectangleRoundedLines(rect, 0.2, 0, 10, highlightColor);
         }
         // Dibuja el cuadrado
@@ -176,17 +167,18 @@ void drawColors()
         }
     }
 
-    DrawText(TextFormat("Aciertos: %d", secuenciaACT - 1), SCR_WIDTH / 2 - MeasureText(TextFormat("Aciertos: %d", secuenciaACT - 1), 50) / 2, 750, 50, DARKGRAY);
-    DrawText(TextFormat("Aciertos: %d", secuenciaACT - 1), (SCR_WIDTH / 2 - MeasureText(TextFormat("Aciertos: %d", secuenciaACT - 1), 50) / 2) + 2, 752, 50, RAYWHITE);
-    DrawTextCenter("¡Replica la secuencia en el orden correcto!", 0, 100, 50, DARKGRAY);
-    DrawTextCenter("¡Replica la secuencia en el orden correcto!", 3, 103, 50, YELLOW);
+    DrawText(TextFormat("Aciertos: %d", secuenciasCorrectas - 1), SCR_WIDTH / 2 - MeasureText(TextFormat("Aciertos: %d", secuenciasCorrectas - 1), 50) / 2, 750, 50, DARKGRAY);
+    DrawText(TextFormat("Aciertos: %d", secuenciasCorrectas - 1), (SCR_WIDTH / 2 - MeasureText(TextFormat("Aciertos: %d", secuenciasCorrectas - 1), 50) / 2) + 2, 752, 50, RAYWHITE);
+    DrawTextCenterX("¡Replica la secuencia en el orden correcto!", 0, 100, 50, DARKGRAY);
+    DrawTextCenterX("¡Replica la secuencia en el orden correcto!", 3, 103, 50, YELLOW);
 }
 
+// Reproduce secuencia actual
 void showSequence()
 {
-    drawColors();
+    drawGame();
 
-    if (indiceAMostrar < secuenciaACT)
+    if (indiceAMostrar < secuenciasCorrectas)
     {
         if (GetTime() - tiempoInicio > 0.5f)
         {
@@ -210,19 +202,20 @@ void showSequence()
     else
     {
         gameState = INPUT_SEC;
-        intentoJugador = 0;
+        intentoActual = 0;
     }
 }
 
+// Recibe y valida la secuencia ingresada
 void ingresarSecuencia()
 {
     int eleccion = opcionUsuario();
     if (eleccion != -1)
     {
-        if (secuencia[intentoJugador] == eleccion)
+        if (secuencia[intentoActual] == eleccion)
         {
-            intentoJugador++;
-            if (intentoJugador >= secuenciaACT)
+            intentoActual++;
+            if (intentoActual >= secuenciasCorrectas) // Completo la secuencia correctamente
             {
                 PlaySound(acierto);
                 gameState = IN_GAME;
@@ -236,6 +229,7 @@ void ingresarSecuencia()
     }
 }
 
+// Lee y retorna opcion del usuario
 int opcionUsuario()
 {
     for (int i = 0; i < N_COLORS; i++)
@@ -249,29 +243,28 @@ int opcionUsuario()
     return -1;
 }
 
-void DrawTextCenter(const char *text, int posX, int posY, int fontSize, Color color)
+void drawGameOver()
 {
-    DrawText(text, SCR_WIDTH / 2 + posX - MeasureText(text, fontSize) / 2, posY, fontSize, color);
+    ClearBackground(RAYWHITE);
+    DrawTexture(gameover, 0, 0, WHITE);
+    DrawTextCenterX("Has perdido!", 0, 250, 70, DARKGRAY);
+    DrawTextCenterX("Has perdido!", 4, 254, 70, RED);
+
+    DrawTextCenterX("(Enter) Jugar de nuevo", 0, 700, 40, DARKGRAY);
+    DrawTextCenterX("(Enter) Jugar de nuevo", 4, 704, 40, GREEN);
+
+    DrawTextCenterX("(Q) Volver al menu", 0, 760, 40, DARKGRAY);
+    DrawTextCenterX("(Q) Volver al menu", 4, 764, 40, RED);
 }
 
-void secondspause(float seconds)
-{
-    double startTime2 = GetTime();
-
-    while (GetTime() - startTime2 < seconds)
-    {
-        BeginDrawing();
-    }
-    EndDrawing();
-}
-
-void updateGame(int key)
+void updateGameState(int key)
 {
     switch (gameState)
     {
     case MAIN_MENU:
         if (key == KEY_ENTER)
         {
+            StopMusicStream(gameMusic);
             gameState = IN_GAME;
         }
         else if (key == KEY_F11)
@@ -300,4 +293,9 @@ void updateGame(int key)
     case SHOW_SEQUENCE:
         break;
     }
+}
+
+void DrawTextCenterX(const char *text, int posX, int posY, int fontSize, Color color)
+{
+    DrawText(text, SCR_WIDTH / 2 + posX - MeasureText(text, fontSize) / 2, posY, fontSize, color);
 }
