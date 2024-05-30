@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <stdbool.h>
+#include <unistd.h>
 
 #define N 100
 
@@ -32,9 +33,9 @@ float leerFloat(const char msg[], float ri, float rf);
 int main()
 {
     FILE *arch;
-    char nomArch[30];
-
+    char nomArch[30] = "banco.dat", nomArchCrear[30];
     int op;
+
     do
     {
         op = menu();
@@ -42,41 +43,43 @@ int main()
         switch (op)
         {
         case 1: // CREAR .DAT
-            leerNombArch("> Ingrese nombre de archivo: ", nomArch, ".dat");
-            crearDat(arch, nomArch);
+            leerNombArch("> Ingrese nombre de archivo: ", nomArchCrear, ".dat");
+            crearDat(arch, nomArchCrear);
             break;
 
         case 2: // RESPALDAR .dat EN .txt
-            leerNombArch("> Ingrese nombre de archivo a respaldar: ", nomArch, ".dat");
             respaldar(arch, nomArch);
             break;
 
         case 3: // INSERTAR DATOS
-            leerNombArch("> Nombre de archivo a insertar datos: ", nomArch, ".dat");
             insertar(arch, nomArch);
             break;
 
         case 4: // BORRAR
-            leerNombArch("> Nombre de archivo del que desea eliminar: ", nomArch, ".dat");
             borrar(arch, nomArch);
             break;
 
         case 5: // MODIFICAR
-            leerNombArch("> Nombre de archivo que desea modificar: ", nomArch, ".dat");
             modificar(arch, nomArch);
             break;
 
         case 6: // LISTAR
-            leerNombArch("> Nombre de archivo a listar: ", nomArch, ".dat");
             listar(arch, nomArch);
             break;
 
-        case 7:
+        case 7: // CAMBIAR ARCHIVO
+            do
+            {
+                leerNombArch("> Ingresa nombre del archivo con el que deseas trabajar (Debe existir): ", nomArch, ".dat");
+            } while (access(nomArch, F_OK));
+            break;
+
+        case 8:
             printf("* HAS SALIDO. *\n");
             break;
         }
         system("PAUSE");
-    } while (op != 7);
+    } while (op != 8);
 }
 
 int menu()
@@ -89,7 +92,8 @@ int menu()
     printf("4. Borrar registro\n");
     printf("5. Modificar balance\n");
     printf("6. Listar registros\n");
-    printf("7. Salir\n");
+    printf("7. Cambiar archivo de operaciones\n");
+    printf("8. Salir\n");
     int op = leerInt("Escoge una opcion: ", 1, 8);
     return op;
 }
