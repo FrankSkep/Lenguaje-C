@@ -104,20 +104,21 @@ void crearDat(FILE *arch, char nom[])
     if (!access(nom, F_OK))
     {
         printf("* El archivo '%s' ya existe, desea sobreescribirlo?\n", nom);
-        if (leerInt("[1. Si | 2. No]: ", 1, 2) == 1)
+        if (leerInt("[1. Si | 2. No]: ", 1, 2) == 2)
         {
-            // Inicializar archivo con datos vacios
-            Tcliente regVacio = {0, "", "", 0};
-            arch = fopen(nom, "wb");
-            for (int i = 0; i < N; i++)
-            {
-                fwrite(&regVacio, sizeof(Tcliente), 1, arch);
-            }
-            system("cls");
-            printf("\n* Archivo '%s' creado e inicializado con exito. *\n\n", nom);
-            fclose(arch);
+            return;
         }
     }
+    // Inicializar archivo con datos vacios
+    Tcliente regVacio = {0, "", "", 0};
+    arch = fopen(nom, "wb");
+    for (int i = 0; i < N; i++)
+    {
+        fwrite(&regVacio, sizeof(Tcliente), 1, arch);
+    }
+    system("cls");
+    printf("\n* Archivo '%s' creado e inicializado con exito. *\n\n", nom);
+    fclose(arch);
 }
 
 void respaldar(FILE *arch, char nom[])
