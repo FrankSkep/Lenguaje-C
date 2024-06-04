@@ -149,7 +149,7 @@ void borrar(Multim movies[], int *cont)
         imprimirRegistro(movies[pos]);
         if (leerInt("> Desea eliminar ? [1. Si / 2. No]: ", 1, 2) == 1)
         {
-            printf("* Elemento eliminado. *\n");
+            printf("* Registro eliminado. *\n");
             // Mueve un indice atras los elementos posteriores al eliminado
             for (int i = pos; i < *cont; i++)
             {
@@ -242,8 +242,7 @@ void listar(Multim movies[], int *cont)
 // Busca un elemento especifico por su clave
 void buscar(Multim movies[], int cont)
 {
-    int clave;                          // Variable para leer la clave a buscar
-    char categ[11] = "", tipo[11] = ""; // Variables temporales para mostrar nombre de categ y tipo
+    int clave; // Variable para leer la clave a buscar
 
     clave = leerInt("> Ingresa clave de elemento a buscar [1000, 2000]: ", 1000, 2000);
 
@@ -251,7 +250,6 @@ void buscar(Multim movies[], int cont)
 
     if (pos != -1) // Mostrar datos de busqueda
     {
-        asignarCategTipo(movies[pos], categ, tipo); // Asignar leyenda de categoria y tipo
         printf("\n> Elemento encontrado. Posicion %d\n", pos);
         imprimirRegistro(movies[pos]);
     }
