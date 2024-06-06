@@ -206,7 +206,7 @@ void showSequence()
     }
 }
 
-// Recibe y valida la secuencia ingresada
+// Recibe y valida secuencia ingresada
 void ingresarSecuencia()
 {
     int eleccion = opcionUsuario();
