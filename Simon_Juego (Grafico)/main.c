@@ -9,7 +9,7 @@
 #define MAX_SECUENCIA 100
 #define N_COLORS 4
 
-// Enum con estados del juego
+// Enum estados del juego
 typedef enum _gameState
 {
     MAIN_MENU,
@@ -19,7 +19,7 @@ typedef enum _gameState
     SHOW_SEQUENCE,
 } TgameState;
 
-// Struct para almacenar propiedades del boton
+// Struct propiedades del boton
 typedef struct
 {
     Rectangle rect;
