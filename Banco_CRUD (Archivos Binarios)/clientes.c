@@ -26,6 +26,7 @@ void listar(FILE *arch, char nom[]);
 
 // Funciones auxiliares
 int cuentaNoRepetida(FILE *arch, char nom[]);
+bool busquedaSecArchivo(FILE *archivo, int num);
 void leerNombArch(char msg[], char nom[], const char ext[]);
 void leerCad(const char msg[], char cadena[], int largo);
 int leerInt(const char msg[], int ri, int rf);
@@ -141,7 +142,7 @@ void respaldar(FILE *arch, char nom[])
         fprintf(archResp, "|-------------------------------------------------------------------------------------------|\n");
         while (fread(&reg, sizeof(Tcliente), 1, arch))
         {
-            if (reg.numCuenta != 0)
+            if (reg.numCuenta != 0) // Si el registro no esta vacio
             {
                 fprintf(archResp, "| %-7d |  %-8d  | %-20s | %-27s | %-13.2f |\n", i + 1, reg.numCuenta, reg.nombre, reg.apellidos, reg.balance);
             }
@@ -174,10 +175,10 @@ void insertar(FILE *arch, char nom[])
         do
         {
             pos = leerInt("> Posicion en que desea guardar su registro [1, 100]: ", 1, 100);
-            fseek(arch, (pos - 1) * sizeof(Tcliente), SEEK_SET);
-            fread(&reg, sizeof(Tcliente), 1, arch); // Leer registro de posicion dada
+            fseek(arch, (pos - 1) * sizeof(Tcliente), SEEK_SET); // Me situo en la posicion dada
+            fread(&reg, sizeof(Tcliente), 1, arch);              // Leer registro de posicion dada
 
-            if (reg.numCuenta != 0)
+            if (reg.numCuenta != 0) // Si existe un registro en esa posicion
             {
                 printf("La posicion ya esta ocupada. Elija otra posicion.\n");
             }
@@ -190,8 +191,8 @@ void insertar(FILE *arch, char nom[])
         reg.balance = leerFloat("> Ingrese su balance: ", 0, 2000000);
 
         // --- Escribir los datos en la posicion dada ---
-        fseek(arch, (pos - 1) * sizeof(Tcliente), SEEK_SET); // Mover cursor ala posicion
-        fwrite(&reg, sizeof(Tcliente), 1, arch);
+        fseek(arch, (pos - 1) * sizeof(Tcliente), SEEK_SET); // Mover cursor ala posicion dada
+        fwrite(&reg, sizeof(Tcliente), 1, arch);             // Escribir el registro capturado
 
         printf("\n* Registro agregado exitosamente. *\n");
         fclose(arch);
@@ -204,28 +205,14 @@ void insertar(FILE *arch, char nom[])
 
 int cuentaNoRepetida(FILE *arch, char nom[])
 {
-    Tcliente reg;
-
-    bool cuentaExistente;
     int numCuenta;
 
     do
     {
-        cuentaExistente = false;
         numCuenta = leerInt("> Ingresa numero de cuenta [1000, 9999]: ", 1000, 9999);
+    } while (busquedaSecArchivo(arch, numCuenta)); // Mientras lo encuentre
 
-        fseek(arch, 0, SEEK_SET); // Mover al inicio del archivo antes de leer
-
-        while (fread(&reg, sizeof(Tcliente), 1, arch))
-        {
-            if (numCuenta == reg.numCuenta)
-            {
-                cuentaExistente = true;
-            }
-        }
-    } while (cuentaExistente);
-
-    return numCuenta;
+    return numCuenta; // Regresa numero de cuenta valido
 }
 
 void borrar(FILE *arch, char nom[])
@@ -238,42 +225,57 @@ void borrar(FILE *arch, char nom[])
         int cuenta = leerInt("> Ingrese no. cuenta a eliminar [1000, 9999]: ", 1000, 9999);
 
         Tcliente reg;
-        fseek(arch, 0, SEEK_SET);
         int op;
-        while (fread(&reg, sizeof(Tcliente), 1, arch))
+        fseek(arch, 0, SEEK_SET); // Situarse al inicio del archivo
+        if (busquedaSecArchivo(arch, cuenta))
         {
-            if (reg.numCuenta == cuenta)
+            fseek(arch, (long int)-sizeof(Tcliente), SEEK_CUR);
+            fread(&reg, sizeof(Tcliente), 1, arch);
+            mostrarDatos(reg);
+
+            if (leerInt("* Desea eliminar? [1. Si | 2. No]: ", 1, 2) == 1)
             {
-                mostrarDatos(reg);
+                reg.numCuenta = 0;
+                reg.nombre[0] = '\0';
+                reg.apellidos[0] = '\0';
+                reg.balance = 0;
 
-                if (leerInt("* Desea eliminar? [1. Si | 2. No]: ", 1, 2) == 1)
-                {
-                    reg.numCuenta = 0;
-                    reg.nombre[0] = '\0';
-                    reg.apellidos[0] = '\0';
-                    reg.balance = 0;
-
-                    fseek(arch, (long int)-sizeof(Tcliente), SEEK_CUR);
-                    fwrite(&reg, sizeof(Tcliente), 1, arch);
-                    printf("* Registro eliminado exitosamente. *\n");
-                    fclose(arch);
-                    return;
-                }
-                else
-                {
-                    printf("* Eliminacion cancelada. *\n");
-                    return;
-                }
+                fseek(arch, (long int)-sizeof(Tcliente), SEEK_CUR);
+                fwrite(&reg, sizeof(Tcliente), 1, arch);
+                printf("* Registro eliminado exitosamente. *\n");
+                fclose(arch);
+            }
+            else
+            {
+                printf("* Eliminacion cancelada. *\n");
+                fclose(arch);
             }
         }
-        printf("* La cuenta '%d' no existe. *\n", cuenta);
-        fclose(arch);
+        else
+        {
+            printf("* La cuenta '%d' no existe. *\n", cuenta);
+            fclose(arch);
+        }
     }
     else
     {
         printf("* El archivo '%s' no existe. *\n", nom);
         fclose(arch);
     }
+}
+
+bool busquedaSecArchivo(FILE *archivo, int num)
+{
+    Tcliente reg;
+    fseek(archivo, 0, SEEK_SET); // Situarse al inicio del archivo
+    while (fread(&reg, sizeof(Tcliente), 1, archivo))
+    {
+        if (reg.numCuenta == num)
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 void mostrarDatos(Tcliente reg)
@@ -294,54 +296,55 @@ void modificar(FILE *arch, char nom[])
         printf("-| Modificando archivo '%s' |-\n\n", nom);
         int cuenta = leerInt("> Ingrese no. cuenta a modificar: ", 1000, 9999);
 
-        Tcliente reg;
-        int op;
         fseek(arch, 0, SEEK_SET);
-        while (fread(&reg, sizeof(Tcliente), 1, arch))
+        if (busquedaSecArchivo(arch, cuenta))
         {
-            if (reg.numCuenta == cuenta)
+            Tcliente reg;
+            fseek(arch, (long int)-sizeof(Tcliente), SEEK_CUR);
+            fread(&reg, sizeof(Tcliente), 1, arch);
+            
+            mostrarDatos(reg);
+
+            int op = leerInt("* Desea modificar su balance? [1. Si | 2. No]: ", 1, 2);
+
+            if (op == 1)
             {
-                mostrarDatos(reg);
-                op = leerInt("* Desea modificar su balance? [1. Si | 2. No]: ", 1, 2);
+                float balance = leerFloat("> Ingrese monto (+) Cargo | (-) Abono: ", -1000000, 2000000);
 
-                if (op == 1)
+                if (balance < 0) // Si es Abono
                 {
-                    float balance = leerFloat("> Ingrese monto (+) Cargo | (-) Abono: ", -1000000, 2000000);
-
-                    if (balance < 0) // Si es Abono
+                    if (fabs(balance) > reg.balance)
                     {
-                        if (fabs(balance) > reg.balance)
-                        {
-                            printf("* Error abono, balance insuficiente. *\n");
-                            fclose(arch);
-                            return;
-                        }
-                        else
-                        {
-                            reg.balance += balance;
-                            printf("* Abono exitoso. (-) *\n");
-                        }
+                        printf("* Error abono, balance insuficiente. *\n");
+                        fclose(arch);
+                        return;
                     }
-                    else // Si es cargo
+                    else
                     {
                         reg.balance += balance;
-                        printf("* Cargo exitoso. *\n");
+                        printf("* Abono exitoso. (-) *\n");
                     }
-                    // Guardar cambios en el archivo
-                    fseek(arch, (long int)-sizeof(Tcliente), SEEK_CUR);
-                    fwrite(&reg, sizeof(Tcliente), 1, arch);
-                    fclose(arch);
-                    return;
                 }
-                else
+                else // Si es cargo
                 {
-                    printf("* Modificacion cancelada. *\n");
-                    return;
+                    reg.balance += balance;
+                    printf("* Cargo exitoso. *\n");
                 }
+                // Guardar cambios en el archivo
+                fseek(arch, (long int)-sizeof(Tcliente), SEEK_CUR);
+                fwrite(&reg, sizeof(Tcliente), 1, arch);
+                fclose(arch);
+            }
+            else
+            {
+                printf("* Modificacion cancelada. *\n");
             }
         }
-        printf("* La cuenta '%d' no existe. *\n", cuenta);
-        fclose(arch);
+        else
+        {
+            printf("* La cuenta '%d' no existe. *\n", cuenta);
+            fclose(arch);
+        }
     }
     else
     {
